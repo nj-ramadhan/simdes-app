@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import client from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/Modal';
+import { formatDate, formatDateInput } from '../../utils/formatters';
 
 const MAX_PHOTOS = 6;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
@@ -12,17 +13,6 @@ function parsePhotos(value) {
     try { value = JSON.parse(value); } catch { return []; }
   }
   return Array.isArray(value) ? value.filter((photo) => typeof photo === 'string' && photo.startsWith('data:image/')).slice(0, MAX_PHOTOS) : [];
-}
-
-function formatDate(value) {
-  if (!value) return '-';
-  const rawValue = String(value).trim();
-  if (!rawValue) return '-';
-  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(rawValue)
-    ? new Date(`${rawValue}T00:00:00`)
-    : new Date(rawValue);
-  if (Number.isNaN(dateValue.getTime())) return '-';
-  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(dateValue);
 }
 
 function compressPhoto(file) {
@@ -92,7 +82,7 @@ export default function KegiatanPage() {
 
   function openEdit(report) {
     setEditingReport(report);
-    setForm({ judul: report.judul || '', tanggal: report.tanggal || '', lokasi: report.lokasi || '', deskripsi: report.deskripsi || '', dokumentasi: parsePhotos(report.dokumentasi) });
+    setForm({ judul: report.judul || '', tanggal: formatDateInput(report.tanggal), lokasi: report.lokasi || '', deskripsi: report.deskripsi || '', dokumentasi: parsePhotos(report.dokumentasi) });
     setShowModal(true);
   }
 
