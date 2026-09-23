@@ -5,6 +5,14 @@ import Modal from '../../components/common/Modal';
 
 const MAX_PHOTOS = 6;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
+const MAX_PHOTO_DATA_LENGTH = 450_000;
+
+function parsePhotos(value) {
+  if (typeof value === 'string') {
+    try { value = JSON.parse(value); } catch { return []; }
+  }
+  return Array.isArray(value) ? value.filter((photo) => typeof photo === 'string' && photo.startsWith('data:image/')).slice(0, MAX_PHOTOS) : [];
+}
 
 function formatDate(value) {
   if (!value) return '-';
@@ -26,7 +34,14 @@ function compressPhoto(file) {
         canvas.width = Math.max(1, Math.round(image.width * scale));
         canvas.height = Math.max(1, Math.round(image.height * scale));
         canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.78));
+        let quality = 0.78;
+        let photo = canvas.toDataURL('image/jpeg', quality);
+        while (photo.length > MAX_PHOTO_DATA_LENGTH && quality > 0.35) {
+          quality -= 0.08;
+          photo = canvas.toDataURL('image/jpeg', quality);
+        }
+        if (photo.length > MAX_PHOTO_DATA_LENGTH) return reject(new Error(`${file.name} terlalu besar setelah dikompresi`));
+        resolve(photo);
       };
       image.src = reader.result;
     };
@@ -49,7 +64,7 @@ export default function KegiatanPage() {
     setError('');
     try {
       const { data } = await client.get('/kegiatan');
-      setReports(data);
+      setReports(data.map((report) => ({ ...report, dokumentasi: parsePhotos(report.dokumentasi) })));
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal memuat laporan kegiatan');
     } finally { setLoading(false); }

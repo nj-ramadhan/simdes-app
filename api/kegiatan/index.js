@@ -5,8 +5,12 @@ const MAX_PHOTOS = 6;
 const MAX_PHOTO_LENGTH = 1_200_000;
 
 function normalizePhotos(value) {
-  if (!Array.isArray(value)) return [];
-  return value.filter((photo) => typeof photo === 'string' && photo.startsWith('data:image/') && photo.length <= MAX_PHOTO_LENGTH).slice(0, MAX_PHOTOS);
+  let photos = value;
+  if (typeof photos === 'string') {
+    try { photos = JSON.parse(photos); } catch { photos = []; }
+  }
+  if (!Array.isArray(photos)) return [];
+  return photos.filter((photo) => typeof photo === 'string' && photo.startsWith('data:image/') && photo.length <= MAX_PHOTO_LENGTH).slice(0, MAX_PHOTOS);
 }
 
 function scopeRows(user, rows) {
@@ -17,6 +21,7 @@ function scopeRows(user, rows) {
 }
 
 function publicRow(row) {
+  const dokumentasi = normalizePhotos(row.dokumentasi);
   return {
     id: row.id,
     id_rw: row.id_rw,
@@ -25,7 +30,7 @@ function publicRow(row) {
     tanggal: row.tanggal,
     lokasi: row.lokasi,
     deskripsi: row.deskripsi,
-    dokumentasi: Array.isArray(row.dokumentasi) ? row.dokumentasi : [],
+    dokumentasi,
     created_at: row.created_at,
   };
 }

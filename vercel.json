@@ -1,6 +1,11 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/api/keuangan/:jenis", "destination": "/api/keuangan/:jenis/transactions" },
+    { "source": "/api/lingkungan", "destination": "/api/data/lingkungan" },
+    { "source": "/api/lingkungan/:id", "destination": "/api/data/lingkungan/:id" },
+    { "source": "/api/infrastruktur", "destination": "/api/data/infrastruktur" },
+    { "source": "/api/infrastruktur/:id", "destination": "/api/data/infrastruktur/:id" },
     { "source": "/((?!api/|assets/|.*\\.[\\w]+$).*)", "destination": "/index.html" }
   ]
 }
