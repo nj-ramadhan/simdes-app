@@ -16,6 +16,7 @@ export default function LaporanKeuangan() {
   const [transaksi, setTransaksi] = useState([]);
   const [summary, setSummary] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [form, setForm] = useState({ ...EMPTY_FORM, id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,13 +45,48 @@ export default function LaporanKeuangan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jenis]);
 
+  function resetForm() {
+    setEditingTransaction(null);
+    setForm({ ...EMPTY_FORM, id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
+  }
+
+  function openCreate() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function openEdit(transaction) {
+    setEditingTransaction(transaction);
+    setForm({
+      tanggal: transaction.tanggal ? String(transaction.tanggal).slice(0, 10) : '',
+      tipe: transaction.tipe || 'masuk',
+      kategori: transaction.kategori || '',
+      jumlah: transaction.jumlah ?? '',
+      keterangan: transaction.keterangan || '',
+      id_rw: transaction.id_rw ?? '',
+      id_rt: transaction.id_rt ?? '',
+    });
+    setShowForm(true);
+  }
+
+  async function handleDelete(transaction) {
+    if (!window.confirm(`Hapus transaksi ${transaction.kategori || ''}?`)) return;
+    setError('');
+    try {
+      await client.delete(`/keuangan/${jenis}?id=${encodeURIComponent(transaction.id)}`);
+      await load();
+    } catch (err) { setError(err.response?.data?.error || 'Gagal menghapus transaksi'); }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
     setError('');
     try {
-      await client.post(`/keuangan/${jenis}`, { ...form, jumlah: Number(form.jumlah), id_rw: form.id_rw === '' ? null : Number(form.id_rw), id_rt: form.id_rt === '' ? null : Number(form.id_rt) });
-      setForm({ ...EMPTY_FORM, id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
+      const payload = { ...form, jumlah: Number(form.jumlah), id_rw: form.id_rw === '' ? null : Number(form.id_rw), id_rt: form.id_rt === '' ? null : Number(form.id_rt) };
+      if (editingTransaction) await client.put(`/keuangan/${jenis}?id=${encodeURIComponent(editingTransaction.id)}`, payload);
+      else await client.post(`/keuangan/${jenis}`, payload);
+      resetForm();
       setShowForm(false);
       await load();
     } catch (err) {
@@ -64,7 +100,7 @@ export default function LaporanKeuangan() {
     <div className="finance-page">
       <header className="finance-header">
         <div><span className="section-kicker">Transparansi Keuangan</span><h1>{LABEL[jenis] || 'Laporan Keuangan'}</h1><p>Ringkasan transaksi yang tersimpan di database untuk wilayah Anda.</p></div>
-        {canWrite && <button type="button" className="primary-button" onClick={() => setShowForm((open) => !open)}>{showForm ? 'Tutup Form' : '+ Catat Transaksi'}</button>}
+        {canWrite && <button type="button" className="primary-button" onClick={() => showForm ? setShowForm(false) : openCreate()}>{showForm ? 'Tutup Form' : '+ Catat Transaksi'}</button>}
       </header>
       {error && <p className="finance-error">{error}</p>}
       {showForm && <form onSubmit={handleSubmit} className="finance-form"><div className="finance-form-grid">
@@ -75,11 +111,11 @@ export default function LaporanKeuangan() {
         <label>Kategori<input required value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value })} /></label>
         <label>Jumlah<input required min="0" type="number" value={form.jumlah} onChange={(e) => setForm({ ...form, jumlah: e.target.value })} /></label>
         <label className="finance-form-wide">Keterangan<input value={form.keterangan} onChange={(e) => setForm({ ...form, keterangan: e.target.value })} /></label>
-      </div><button type="submit" className="submit-button" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Transaksi'}</button></form>}
+      </div><button type="submit" className="submit-button" disabled={saving}>{saving ? 'Menyimpan...' : editingTransaction ? 'Simpan Perubahan' : 'Simpan Transaksi'}</button></form>}
       {loading ? <div className="finance-empty">Memuat data keuangan...</div> : <>
         <section className="finance-summary-grid"><FinanceStat label="Total Masuk" value={summary?.total_masuk} tone="income" /><FinanceStat label="Total Keluar" value={summary?.total_keluar} tone="expense" /><FinanceStat label="Saldo Berjalan" value={summary?.saldo} tone="balance" /><FinanceStat label="Jumlah Transaksi" value={summary?.jumlah_transaksi || 0} tone="count" isCount /></section>
         <section className="finance-table-panel"><div className="panel-header"><div><span className="panel-kicker">Data Database</span><h2 className="panel-title">Riwayat Transaksi</h2></div><span className="badge badge-info">{transaksi.length} transaksi</span></div>
-          {transaksi.length === 0 ? <div className="finance-empty">Belum ada transaksi pada laporan ini.</div> : <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th></tr></thead><tbody>{transaksi.map((item) => <tr key={item.id}><td>{item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-'}</td><td><span className={`transaction-type ${item.tipe}`}>{item.tipe}</span></td><td>{item.kategori || '-'}</td><td className="amount">{currency(item.jumlah)}</td><td>{item.keterangan || '-'}</td></tr>)}</tbody></table></div>}
+          {transaksi.length === 0 ? <div className="finance-empty">Belum ada transaksi pada laporan ini.</div> : <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th>{jenis !== 'global' && canWrite && <th>Aksi</th>}</tr></thead><tbody>{transaksi.map((item) => <tr key={`${item.sumber || jenis}-${item.id}`}><td>{item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-'}</td><td><span className={`transaction-type ${item.tipe}`}>{item.tipe}</span></td><td>{item.kategori || '-'}</td><td className="amount">{currency(item.jumlah)}</td><td>{item.keterangan || '-'}</td>{jenis !== 'global' && canWrite && <td><div className="finance-actions"><button type="button" className="table-button table-button-edit" onClick={() => openEdit(item)}>Edit</button><button type="button" className="table-button table-button-delete" onClick={() => handleDelete(item)}>Hapus</button></div></td>}</tr>)}</tbody></table></div>}
         </section>
       </>}
     </div>

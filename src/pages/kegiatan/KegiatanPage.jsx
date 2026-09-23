@@ -62,6 +62,7 @@ export default function KegiatanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [editingReport, setEditingReport] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ judul: '', tanggal: new Date().toISOString().slice(0, 10), lokasi: '', deskripsi: '', dokumentasi: [] });
 
@@ -84,8 +85,24 @@ export default function KegiatanPage() {
   }, []);
 
   function openCreate() {
+    setEditingReport(null);
     setForm({ judul: '', tanggal: new Date().toISOString().slice(0, 10), lokasi: '', deskripsi: '', dokumentasi: [] });
     setShowModal(true);
+  }
+
+  function openEdit(report) {
+    setEditingReport(report);
+    setForm({ judul: report.judul || '', tanggal: report.tanggal || '', lokasi: report.lokasi || '', deskripsi: report.deskripsi || '', dokumentasi: parsePhotos(report.dokumentasi) });
+    setShowModal(true);
+  }
+
+  async function handleDelete(report) {
+    if (!window.confirm(`Hapus laporan "${report.judul}"?`)) return;
+    setError('');
+    try {
+      await client.delete(`/kegiatan?id=${encodeURIComponent(report.id)}`);
+      await load();
+    } catch (err) { setError(err.response?.data?.error || 'Gagal menghapus laporan kegiatan'); }
   }
 
   async function handleFiles(event) {
@@ -103,7 +120,10 @@ export default function KegiatanPage() {
     event.preventDefault();
     setSaving(true);
     try {
-      await client.post('/kegiatan', { ...form, id_rw: user.id_rw, id_rt: user.id_rt });
+      const payload = { ...form, id_rw: user.id_rw, id_rt: user.id_rt };
+      if (editingReport) await client.put(`/kegiatan?id=${encodeURIComponent(editingReport.id)}`, payload);
+      else await client.post('/kegiatan', payload);
+      setEditingReport(null);
       setShowModal(false);
       await load();
     } catch (err) {
@@ -117,8 +137,8 @@ export default function KegiatanPage() {
       {canWrite && <button onClick={openCreate} className="primary-button small-button">+ Buat Laporan</button>}
     </div>
     {error && <p className="error-message">{error}</p>}
-    {loading ? <div className="loader-wrap"><span className="loading-spinner" /><p>Memuat laporan kegiatan...</p></div> : reports.length === 0 ? <div className="empty-state"><strong>Belum ada laporan kegiatan</strong><span>Laporan dan dokumentasi yang diterbitkan akan tampil di sini.</span></div> : <section className="kegiatan-grid">{reports.map((report) => <article className="kegiatan-card" key={report.id}><div className="kegiatan-gallery kegiatan-gallery-admin">{report.dokumentasi?.[0] ? <img src={report.dokumentasi[0]} alt={`${report.judul} dokumentasi`} onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <div className="kegiatan-no-photo">Tanpa foto</div>}</div><div className="kegiatan-card-body"><div className="kegiatan-meta"><span>{formatDate(report.tanggal)}</span><span>RT {report.id_rt || '-'} / RW {report.id_rw || '-'}</span></div><h2>{report.judul}</h2>{report.lokasi && <p className="kegiatan-location">Lokasi: {report.lokasi}</p>}<p>{report.deskripsi}</p>{report.dokumentasi?.length > 1 && <span className="kegiatan-photo-count">+{report.dokumentasi.length - 1} foto lainnya</span>}</div></article>)}</section>}
+    {loading ? <div className="loader-wrap"><span className="loading-spinner" /><p>Memuat laporan kegiatan...</p></div> : reports.length === 0 ? <div className="empty-state"><strong>Belum ada laporan kegiatan</strong><span>Laporan dan dokumentasi yang diterbitkan akan tampil di sini.</span></div> : <section className="kegiatan-grid">{reports.map((report) => <article className="kegiatan-card" key={report.id}><div className="kegiatan-gallery kegiatan-gallery-admin">{report.dokumentasi?.[0] ? <img src={report.dokumentasi[0]} alt={`${report.judul} dokumentasi`} onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : <div className="kegiatan-no-photo">Tanpa foto</div>}</div><div className="kegiatan-card-body"><div className="kegiatan-meta"><span>{formatDate(report.tanggal)}</span><span>RT {report.id_rt || '-'} / RW {report.id_rw || '-'}</span></div><h2>{report.judul}</h2>{report.lokasi && <p className="kegiatan-location">Lokasi: {report.lokasi}</p>}<p>{report.deskripsi}</p>{report.dokumentasi?.length > 1 && <span className="kegiatan-photo-count">+{report.dokumentasi.length - 1} foto lainnya</span>}<div className="kegiatan-actions"><button type="button" className="table-button table-button-edit" onClick={() => openEdit(report)}>Edit</button><button type="button" className="table-button table-button-delete" onClick={() => handleDelete(report)}>Hapus</button></div></div></article>)}</section>}
 
-    {showModal && <Modal title="Buat Laporan Kegiatan" onClose={() => !saving && setShowModal(false)}><form onSubmit={handleSubmit} className="data-form kegiatan-form"><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-judul">Judul kegiatan</label><input id="kegiatan-judul" className="form-control" required value={form.judul} onChange={(event) => setForm({ ...form, judul: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-tanggal">Tanggal</label><input id="kegiatan-tanggal" type="date" className="form-control" required value={form.tanggal} onChange={(event) => setForm({ ...form, tanggal: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-lokasi">Lokasi</label><input id="kegiatan-lokasi" className="form-control" value={form.lokasi} onChange={(event) => setForm({ ...form, lokasi: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-deskripsi">Uraian kegiatan</label><textarea id="kegiatan-deskripsi" className="form-control kegiatan-textarea" required rows="5" value={form.deskripsi} onChange={(event) => setForm({ ...form, deskripsi: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-foto">Dokumentasi foto <span className="form-hint">maks. {MAX_PHOTOS} foto, 8 MB/foto</span></label><input id="kegiatan-foto" type="file" accept="image/*" multiple className="form-control kegiatan-file" onChange={handleFiles} />{form.dokumentasi.length > 0 && <span className="form-hint">{form.dokumentasi.length} foto siap diunggah</span>}</div><button type="submit" className="submit-button" disabled={saving}>{saving ? 'Menyimpan...' : 'Terbitkan Laporan'}</button></form></Modal>}
+    {showModal && <Modal title={editingReport ? 'Edit Laporan Kegiatan' : 'Buat Laporan Kegiatan'} onClose={() => !saving && setShowModal(false)}><form onSubmit={handleSubmit} className="data-form kegiatan-form"><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-judul">Judul kegiatan</label><input id="kegiatan-judul" className="form-control" required value={form.judul} onChange={(event) => setForm({ ...form, judul: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-tanggal">Tanggal</label><input id="kegiatan-tanggal" type="date" className="form-control" required value={form.tanggal} onChange={(event) => setForm({ ...form, tanggal: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-lokasi">Lokasi</label><input id="kegiatan-lokasi" className="form-control" value={form.lokasi} onChange={(event) => setForm({ ...form, lokasi: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-deskripsi">Uraian kegiatan</label><textarea id="kegiatan-deskripsi" className="form-control kegiatan-textarea" required rows="5" value={form.deskripsi} onChange={(event) => setForm({ ...form, deskripsi: event.target.value })} /></div><div className="form-field-wrap"><label className="form-label" htmlFor="kegiatan-foto">Dokumentasi foto <span className="form-hint">maks. {MAX_PHOTOS} foto, 8 MB/foto</span></label><input id="kegiatan-foto" type="file" accept="image/*" multiple className="form-control kegiatan-file" onChange={handleFiles} />{form.dokumentasi.length > 0 && <span className="form-hint">{form.dokumentasi.length} foto siap diunggah</span>}</div><button type="submit" className="submit-button" disabled={saving}>{saving ? 'Menyimpan...' : editingReport ? 'Simpan Perubahan' : 'Terbitkan Laporan'}</button></form></Modal>}
   </div>;
 }

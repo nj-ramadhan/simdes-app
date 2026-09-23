@@ -1284,6 +1284,8 @@
 .kegiatan-card-clickable:hover, .kegiatan-card-clickable:focus-visible { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(28, 84, 72, 0.14); outline: 2px solid #4a9e71; outline-offset: 3px; }
 .kegiatan-view-hint { display: inline-block; margin-top: 10px; color: #2d8c68; font-size: 12px; font-weight: 800; }
 .kegiatan-photo-count { display: inline-block; margin-top: 10px; color: #638278; font-size: 12px; font-weight: 700; }
+.kegiatan-actions { display: flex; gap: 8px; margin-top: 14px; }
+.finance-actions { display: flex; gap: 6px; }
 .kegiatan-form { gap: 14px; }
 .kegiatan-textarea { resize: vertical; min-height: 110px; }
 .kegiatan-file { padding: 9px; background: #f5fcf9; }

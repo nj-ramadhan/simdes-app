@@ -1,4 +1,4 @@
-import { getRows, addRow } from '../../_lib/sheets.js';
+import { getRows, addRow, updateRowById, deleteRowById } from '../../_lib/sheets.js';
 import { verifyToken, requireRole, assertScope } from '../../_lib/auth.js';
 
 const SHEET_MAP = {
@@ -62,6 +62,31 @@ export default async function handler(req, res) {
         id_rt: req.body.id_rt === '' || req.body.id_rt === 'ALL' ? null : req.body.id_rt,
       });
       return res.status(201).json(created);
+    }
+
+    if (action === 'transactions' && (req.method === 'PUT' || req.method === 'DELETE')) {
+      if (jenis === 'global') return res.status(400).json({ error: 'Pilih jenis kas tertentu untuk mengubah atau menghapus transaksi' });
+      requireRole(user, ['rt_admin', 'rw_admin']);
+      const id = req.query?.id;
+      const existing = (await getRows(sheetName, row => row.id === id))[0];
+      if (!existing) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+      assertScope(user, existing.id_rt, existing.id_rw);
+      if (req.method === 'DELETE') {
+        await deleteRowById(sheetName, 'id', id);
+        return res.status(200).json({ success: true });
+      }
+      const body = req.body || {};
+      assertScope(user, body.id_rt ?? existing.id_rt, body.id_rw ?? existing.id_rw);
+      const updated = await updateRowById(sheetName, 'id', id, {
+        id_rw: body.id_rw === '' ? null : (body.id_rw ?? existing.id_rw),
+        id_rt: body.id_rt === '' || body.id_rt === 'ALL' ? null : (body.id_rt ?? existing.id_rt),
+        tanggal: body.tanggal,
+        tipe: body.tipe,
+        kategori: body.kategori,
+        jumlah: Number(body.jumlah),
+        keterangan: body.keterangan || null,
+      });
+      return res.status(200).json(updated);
     }
 
     return res.status(405).json({ error: 'Method tidak diizinkan' });
