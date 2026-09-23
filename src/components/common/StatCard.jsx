@@ -1,8 +1,13 @@
+import statIconPeople from '../../assets/icon-people.png';
+import statIconData from '../../assets/icon-data.png';
+import statIconOldman from '../../assets/icon-oldman.png';
+import statIconMoney from '../../assets/icon-money.png';
+
 const ICON_MAP = {
-  blue: '👥',
-  green: '📋',
-  yellow: '👴',
-  red: '💰',
+  blue: statIconPeople,
+  green: statIconData,
+  yellow: statIconOldman,
+  red: statIconMoney,
 };
 
 const STYLE_MAP = {
@@ -35,7 +40,7 @@ export default function StatCard({ label, value, color = 'blue' }) {
   return (
     <div className="stat-card" style={{ background: styles.bg }}>
       <div className="stat-icon" style={{ color: styles.icon }}>
-        {icon}
+        <img src={icon} alt="" />
       </div>
       <div className="stat-content">
         <p className="stat-label">{label}</p>

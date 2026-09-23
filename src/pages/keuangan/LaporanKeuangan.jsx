@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import client from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { formatDate, formatDateInput } from '../../utils/formatters';
 
 const LABEL = {
   global: 'Kas Global', sampah: 'Iuran Sampah', keamanan: 'Iuran Keamanan',
@@ -58,7 +59,7 @@ export default function LaporanKeuangan() {
   function openEdit(transaction) {
     setEditingTransaction(transaction);
     setForm({
-      tanggal: transaction.tanggal ? String(transaction.tanggal).slice(0, 10) : '',
+      tanggal: formatDateInput(transaction.tanggal),
       tipe: transaction.tipe || 'masuk',
       kategori: transaction.kategori || '',
       jumlah: transaction.jumlah ?? '',
@@ -115,7 +116,7 @@ export default function LaporanKeuangan() {
       {loading ? <div className="finance-empty">Memuat data keuangan...</div> : <>
         <section className="finance-summary-grid"><FinanceStat label="Total Masuk" value={summary?.total_masuk} tone="income" /><FinanceStat label="Total Keluar" value={summary?.total_keluar} tone="expense" /><FinanceStat label="Saldo Berjalan" value={summary?.saldo} tone="balance" /><FinanceStat label="Jumlah Transaksi" value={summary?.jumlah_transaksi || 0} tone="count" isCount /></section>
         <section className="finance-table-panel"><div className="panel-header"><div><span className="panel-kicker">Data Database</span><h2 className="panel-title">Riwayat Transaksi</h2></div><span className="badge badge-info">{transaksi.length} transaksi</span></div>
-          {transaksi.length === 0 ? <div className="finance-empty">Belum ada transaksi pada laporan ini.</div> : <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th>{jenis !== 'global' && canWrite && <th>Aksi</th>}</tr></thead><tbody>{transaksi.map((item) => <tr key={`${item.sumber || jenis}-${item.id}`}><td>{item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-'}</td><td><span className={`transaction-type ${item.tipe}`}>{item.tipe}</span></td><td>{item.kategori || '-'}</td><td className="amount">{currency(item.jumlah)}</td><td>{item.keterangan || '-'}</td>{jenis !== 'global' && canWrite && <td><div className="finance-actions"><button type="button" className="table-button table-button-edit" onClick={() => openEdit(item)}>Edit</button><button type="button" className="table-button table-button-delete" onClick={() => handleDelete(item)}>Hapus</button></div></td>}</tr>)}</tbody></table></div>}
+          {transaksi.length === 0 ? <div className="finance-empty">Belum ada transaksi pada laporan ini.</div> : <div className="finance-table-wrap"><table className="finance-table"><thead><tr><th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Jumlah</th><th>Keterangan</th>{jenis !== 'global' && canWrite && <th>Aksi</th>}</tr></thead><tbody>{transaksi.map((item) => <tr key={`${item.sumber || jenis}-${item.id}`}><td>{formatDate(item.tanggal)}</td><td><span className={`transaction-type ${item.tipe}`}>{item.tipe}</span></td><td>{item.kategori || '-'}</td><td className="amount">{currency(item.jumlah)}</td><td>{item.keterangan || '-'}</td>{jenis !== 'global' && canWrite && <td><div className="finance-actions"><button type="button" className="table-button table-button-edit" onClick={() => openEdit(item)}>Edit</button><button type="button" className="table-button table-button-delete" onClick={() => handleDelete(item)}>Hapus</button></div></td>}</tr>)}</tbody></table></div>}
         </section>
       </>}
     </div>

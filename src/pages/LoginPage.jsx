@@ -44,7 +44,7 @@ export default function LoginPage() {
             <div className="login-header">
               <span className="login-kicker">Portal Login</span>
               <h2>Selamat Datang</h2>
-              <button type="button" className="back-to-public" onClick={() => navigate('/')}>← Kembali ke Transparansi</button>
+              <button type="button" className="back-to-public" onClick={() => navigate('/')}>Kembali ke Transparansi</button>
             </div>
             {error && <p className="login-error">{error}</p>}
             <div className="field-group">
