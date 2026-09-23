@@ -5,8 +5,8 @@ import statIconMoney from '../../assets/icon-money.png';
 
 const ICON_MAP = {
   blue: statIconPeople,
-  green: statIconData,
-  yellow: statIconOldman,
+  green: statIconOldman,
+  yellow: statIconData,
   red: statIconMoney,
 };
 
