@@ -112,8 +112,12 @@ npm run preview  # preview hasil build
 - `GET|POST /api/aset`
 - `GET|POST /api/keuangan/:jenis`
 - `GET /api/keuangan/:jenis/summary`
+- `GET|POST /api/kegiatan`
+- `GET /api/public/kegiatan`
 
 Jenis keuangan: `global`, `sampah`, `keamanan`, `dana-sosial`, `dana-kematian`, `kompensasi`.
+
+Laporan kegiatan dapat dibuat oleh `rt_admin` atau `rw_admin` melalui menu Laporan Kegiatan. Foto dikompres di browser dan disimpan sebagai JSONB pada tabel `kegiatan` (maksimal 6 foto per laporan). Warga dapat membaca laporan dan dokumentasinya melalui dashboard warga, sedangkan endpoint publik tersedia melalui `/api/public/kegiatan`.
 
 ## Scope Akses
 

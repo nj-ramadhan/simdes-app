@@ -10,6 +10,7 @@ const MENU_BY_ROLE = {
     { to: '/rw/lingkungan', label: 'Data Lingkungan' },
     { to: '/rw/infrastruktur', label: 'Data Infrastruktur' },
     { to: '/rw/aset', label: 'Data Aset' },
+    { to: '/rw/kegiatan', label: 'Laporan Kegiatan' },
   ],
   rt_admin: [
     { to: '/rt', label: 'Dashboard' },
@@ -17,10 +18,12 @@ const MENU_BY_ROLE = {
     { to: '/rt/lingkungan', label: 'Data Lingkungan' },
     { to: '/rt/infrastruktur', label: 'Data Infrastruktur' },
     { to: '/rt/aset', label: 'Data Aset' },
+    { to: '/rt/kegiatan', label: 'Laporan Kegiatan' },
   ],
   warga: [
     { to: '/warga', label: 'Dashboard' },
     { to: '/warga/warga', label: 'Data Warga Lain' },
+    { to: '/warga/kegiatan', label: 'Laporan Kegiatan' },
   ],
 };
 

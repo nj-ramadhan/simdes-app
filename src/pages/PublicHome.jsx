@@ -7,6 +7,7 @@ const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 export default function PublicHome() {
   const [filter, setFilter] = useState({ rw: '', rt: '', kategori: '' });
   const [data, setData] = useState(null);
+  const [kegiatan, setKegiatan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -23,6 +24,12 @@ export default function PublicHome() {
         throw new Error('API transparansi belum tersedia. Jalankan vercel dev untuk mengaktifkan database.');
       }
       setData(response.data);
+      try {
+        const kegiatanResponse = await publicClient.get(`/public/kegiatan${params.toString() ? `?${params}` : ''}`);
+        setKegiatan(kegiatanResponse.data);
+      } catch {
+        setKegiatan([]);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Informasi transparansi belum dapat dimuat');
     } finally { setLoading(false); }
@@ -46,6 +53,7 @@ export default function PublicHome() {
       {loading ? <div className="finance-empty">Memuat transparansi desa...</div> : data?.statistik && <>
         <section className="public-stats"><PublicStat label="Total Warga" value={data.statistik.total_warga} /><PublicStat label="Anak" value={data.statistik.anak} /><PublicStat label="Jompo" value={data.statistik.jompo} /><PublicStat label="Usia Produktif" value={data.statistik.usia_produktif} /><PublicStat label="Laki-laki" value={data.statistik.laki_laki} /><PublicStat label="Perempuan" value={data.statistik.perempuan} /><PublicStat label="Saldo Kas" value={money(data.statistik.saldo)} /><PublicStat label="Transaksi" value={data.statistik.total_transaksi} /></section>
         <section className="public-columns"><article className="public-panel"><div className="panel-header"><div><span className="panel-kicker">Kependudukan Umum</span><h2 className="panel-title">Ringkasan Klasifikasi</h2></div><span className="badge badge-info">Angka agregat</span></div><div className="public-breakdown"><Breakdown title="Pekerjaan" items={data.pekerjaan} /><Breakdown title="Kelompok usia" items={data.klasifikasi_usia} /></div></article><article className="public-panel"><div className="panel-header"><div><span className="panel-kicker">Kas Gabungan</span><h2 className="panel-title">Transparansi Keuangan</h2></div><span className="badge badge-success">{data.statistik.total_transaksi} transaksi</span></div><ul className="public-money-list"><li><span>Total masuk</span><strong>{money(data.statistik.total_masuk)}</strong></li><li><span>Total keluar</span><strong>{money(data.statistik.total_keluar)}</strong></li><li><span>Saldo</span><strong>{money(data.statistik.saldo)}</strong></li></ul><div className="public-breakdown">{data.keuangan_kategori.map((row) => <Breakdown key={row.label} title={row.label} items={[{ label: 'Saldo', jumlah: row.saldo }, { label: 'Transaksi', jumlah: row.transaksi }]} moneyValue={row.label !== 'global'} />)}</div></article></section>
+        <section className="public-panel public-kegiatan-panel"><div className="panel-header"><div><span className="panel-kicker">Kabar Wilayah</span><h2 className="panel-title">Laporan Kegiatan Warga</h2></div><span className="badge badge-info">{kegiatan.length} laporan</span></div>{kegiatan.length ? <div className="kegiatan-grid">{kegiatan.map((report) => <article className="kegiatan-card" key={report.id}><div className="kegiatan-gallery">{report.dokumentasi?.length ? report.dokumentasi.map((photo, index) => <img key={`${report.id}-${index}`} src={photo} alt={`${report.judul} dokumentasi ${index + 1}`} />) : <div className="kegiatan-no-photo">Tanpa foto</div>}</div><div className="kegiatan-card-body"><div className="kegiatan-meta"><span>{report.tanggal}</span><span>RT {report.id_rt || '-'} / RW {report.id_rw || '-'}</span></div><h2>{report.judul}</h2>{report.lokasi && <p className="kegiatan-location">Lokasi: {report.lokasi}</p>}<p>{report.deskripsi}</p></div></article>)}</div> : <div className="public-kegiatan-empty">Belum ada laporan kegiatan untuk cakupan wilayah ini.</div>}</section>
       </>}
     </section>
   </main>;

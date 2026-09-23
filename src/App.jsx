@@ -14,6 +14,7 @@ import Aset from './pages/data/Aset';
 
 import LaporanKeuangan from './pages/keuangan/LaporanKeuangan';
 import PublicHome from './pages/PublicHome';
+import KegiatanPage from './pages/kegiatan/KegiatanPage';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="lingkungan" element={<Lingkungan />} />
             <Route path="infrastruktur" element={<Infrastruktur />} />
             <Route path="aset" element={<Aset />} />
+            <Route path="kegiatan" element={<KegiatanPage />} />
           </Route>
 
           <Route path="/rt" element={
@@ -41,6 +43,7 @@ export default function App() {
             <Route path="lingkungan" element={<Lingkungan />} />
             <Route path="infrastruktur" element={<Infrastruktur />} />
             <Route path="aset" element={<Aset />} />
+            <Route path="kegiatan" element={<KegiatanPage />} />
           </Route>
 
           <Route path="/warga" element={
@@ -48,6 +51,7 @@ export default function App() {
           }>
             <Route index element={<DashboardWarga />} />
             <Route path="warga" element={<Sensus />} />
+            <Route path="kegiatan" element={<KegiatanPage />} />
           </Route>
 
           {/* Laporan keuangan memakai layout dan navigasi yang sama dengan halaman data. */}

@@ -124,6 +124,21 @@ CREATE TABLE IF NOT EXISTS aset (
   nilai_perolehan NUMERIC
 );
 
+-- ==== Laporan Kegiatan dan Dokumentasi ====
+
+CREATE TABLE IF NOT EXISTS kegiatan (
+  id TEXT PRIMARY KEY,
+  id_rw INTEGER,
+  id_rt INTEGER,
+  judul TEXT NOT NULL,
+  tanggal DATE NOT NULL,
+  lokasi TEXT,
+  deskripsi TEXT NOT NULL,
+  dokumentasi JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_by TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- ==== Modul Keuangan (6 jenis, struktur seragam) ====
 -- Nama tabel HARUS persis: keuangan_global, keuangan_sampah, keuangan_keamanan,
 -- keuangan_danasosial, keuangan_danakematian, keuangan_kompensasi
