@@ -16,7 +16,13 @@ function parsePhotos(value) {
 
 function formatDate(value) {
   if (!value) return '-';
-  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(`${value}T00:00:00`));
+  const rawValue = String(value).trim();
+  if (!rawValue) return '-';
+  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(rawValue)
+    ? new Date(`${rawValue}T00:00:00`)
+    : new Date(rawValue);
+  if (Number.isNaN(dateValue.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(dateValue);
 }
 
 function compressPhoto(file) {
