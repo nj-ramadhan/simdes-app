@@ -76,7 +76,7 @@ export default function Sidebar({ open, onToggle }) {
             }
           >
             <span className="nav-icon" aria-hidden="true">
-              {item.label.includes('Dashboard') ? '◇' : item.label.includes('Data') ? '◌' : '○'}
+              {item.label.includes('Dashboard') ? '*' : item.label.includes('Data') ? '+' : '-'}
             </span>
             {item.label}
           </NavLink>
@@ -91,7 +91,9 @@ export default function Sidebar({ open, onToggle }) {
               `nav-link ${isActive ? 'active' : ''}`
             }
           >
-            <span className="nav-icon" aria-hidden="true">✦</span>
+            <span className="nav-icon" aria-hidden="true">
+              {k.label.includes('Kas') ? '*' : k.label.includes('Iuran') ? '+' : '-'}
+            </span>
             {k.label}
           </NavLink>
         ))}
