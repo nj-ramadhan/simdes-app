@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import simdesIcon from '../../assets/icon-simdes.png';
 
 const ROLE_LABEL = { rw_admin: 'Admin RW', rt_admin: 'Admin RT', warga: 'Warga' };
 
@@ -44,7 +45,7 @@ export default function Sidebar({ open, onToggle }) {
     <aside className="app-sidebar" aria-hidden={!open}>
       <div className="brand-wrap">
         <div className="brand-icon">
-          <span aria-hidden="true">S</span>
+          <img src={simdesIcon} alt="SIMDES" />
         </div>
         <div>
           <div className="brand-title">SIMDES</div>

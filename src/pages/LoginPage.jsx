@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import simdesIcon from '../assets/icon-simdes.png';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ export default function LoginPage() {
       <div className="login-shell">
         <aside className="login-brand-panel">
           <div className="login-brand-content">
-            <div className="login-logo">S</div>
+            <div className="login-logo"><img src={simdesIcon} alt="SIMDES" /></div>
             <div>
               <h1>SIMDES</h1>
               <p>Sistem Informasi Masyarakat Desa</p>

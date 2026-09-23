@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import publicClient from '../api/publicClient';
 import { formatDate } from '../utils/formatters';
+import simdesIcon from '../assets/icon-simdes.png';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 
@@ -61,7 +62,7 @@ export default function PublicHome() {
   }
 
   return <main className="public-home">
-    <header className="public-nav"><div className="public-brand"><span className="public-logo">S</span><div><strong>SIMDES</strong><small>Sistem Informasi Masyarakat Desa</small></div></div><Link className="public-login-button" to="/login">Masuk Pengelola</Link></header>
+    <header className="public-nav"><div className="public-brand"><span className="public-logo"><img src={simdesIcon} alt="SIMDES" /></span><div><strong>SIMDES</strong><small>Sistem Informasi Masyarakat Desa</small></div></div><Link className="public-login-button" to="/login">Masuk Pengelola</Link></header>
     <section className="public-hero"><div><span className="section-kicker">Portal Transparansi Desa</span><h1>Informasi desa, terbuka untuk semua warga.</h1><p>Lihat ringkasan kependudukan dan keuangan desa berdasarkan RW atau RT tanpa harus masuk ke sistem pengelola.</p></div><div className="public-hero-mark">SIM<br />DES</div></section>
     <section className="public-content">
       <form className="public-filter" onSubmit={submit}><div><span className="panel-kicker">Cakupan Data</span><h2>Filter transparansi</h2></div><label>RW<input type="number" min="1" placeholder="Semua RW" value={filter.rw} onChange={(e) => setFilter({ ...filter, rw: e.target.value })} /></label><label>RT<input type="number" min="1" placeholder="Semua RT" value={filter.rt} onChange={(e) => setFilter({ ...filter, rt: e.target.value })} /></label><label>Kategori<select value={filter.kategori} onChange={(e) => setFilter({ ...filter, kategori: e.target.value })}><option value="">Semua kas</option><option value="global">Kas Global</option><option value="sampah">Iuran Sampah</option><option value="keamanan">Iuran Keamanan</option><option value="dana-sosial">Dana Sosial</option><option value="dana-kematian">Dana Kematian</option><option value="kompensasi">Dana Kompensasi</option></select></label><button className="primary-button" type="submit">Terapkan</button><button className="public-reset" type="button" onClick={() => { setFilter({ rw: '', rt: '', kategori: '' }); setTimeout(load, 0); }}>Reset</button></form>

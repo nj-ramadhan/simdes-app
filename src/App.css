@@ -7,7 +7,8 @@
 .public-home { min-height: 100vh; color: #183d39; background: linear-gradient(135deg, #eefaf7 0%, #eef6ff 100%); }
 .public-nav { max-width: 1240px; margin: 0 auto; padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; }
 .public-brand { display: flex; align-items: center; gap: 12px; }
-.public-logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: #113b2e; background: linear-gradient(135deg, #9be15d, #23b26d); font-size: 22px; font-weight: 900; }
+.public-logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(135deg, #9be15d, #23b26d); overflow: hidden; }
+.public-logo img { width: 100%; height: 100%; object-fit: contain; }
 .public-brand strong { display: block; font-size: 22px; letter-spacing: .04em; }
 .public-brand small { display: block; margin-top: 3px; color: #5f8478; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .public-login-button { padding: 12px 18px; border-radius: 12px; color: #173d38; background: white; border: 1px solid #cbded8; font-size: 15px; font-weight: 900; text-decoration: none; }
@@ -70,6 +71,8 @@
   font-weight: 900;
   box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.55);
 }
+
+.brand-icon img { width: 100%; height: 100%; object-fit: contain; }
 
 .brand-title {
   font-size: 28px;
@@ -1377,6 +1380,8 @@
   font-weight: 900;
   border: 2px solid rgba(255,255,255,0.8);
 }
+
+.login-logo img { width: 100%; height: 100%; object-fit: contain; }
 
 .login-highlight {
   margin-top: 56px;
