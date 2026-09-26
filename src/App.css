@@ -1272,12 +1272,12 @@
 .page-description { margin-top: 10px; color: #648078; font-size: 14px; line-height: 1.5; }
 .kegiatan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .kegiatan-card { overflow: hidden; border: 1px solid #d8ece8; border-radius: 18px; background: white; box-shadow: 0 12px 24px rgba(28, 84, 72, 0.06); animation: fieldSlideIn 350ms ease-out; }
-.kegiatan-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; height: 190px; background: #dcece8; }
+.kegiatan-gallery { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 3px; height: 190px; overflow: hidden; background: #dcece8; }
 .kegiatan-gallery img { width: 100%; height: 100%; min-width: 0; object-fit: cover; }
 .kegiatan-gallery img:first-child { grid-column: span 2; grid-row: span 2; }
-.kegiatan-gallery-admin { grid-template-columns: 1fr; }
+.kegiatan-gallery-admin { grid-template-columns: 1fr; grid-template-rows: 1fr; }
 .kegiatan-gallery-admin img { grid-column: auto !important; grid-row: auto !important; }
-.kegiatan-no-photo { grid-column: 1 / -1; display: grid; place-items: center; color: #638278; font-size: 13px; }
+.kegiatan-no-photo { grid-column: 1 / -1; grid-row: 1 / -1; display: grid; place-items: center; color: #638278; font-size: 13px; }
 .kegiatan-card-body { padding: 18px; }
 .kegiatan-meta { display: flex; justify-content: space-between; gap: 10px; color: #4a9e71; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .kegiatan-card h2 { margin: 10px 0 8px; color: #173d38; font-size: 21px; line-height: 1.1; }
