@@ -52,6 +52,13 @@ export default async function handler(req, res) {
     const totalMasuk = ledgers.filter((row) => row.tipe === 'masuk').reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
     const totalKeluar = ledgers.filter((row) => row.tipe === 'keluar').reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
 
+    const inScope = (row) => (rw === null || Number(row.id_rw) === rw) && (rt === null || Number(row.id_rt) === rt);
+    const [lingkungan, infrastruktur, aset] = await Promise.all([
+      getRows('Lingkungan'),
+      getRows('Infrastruktur'),
+      getRows('Aset'),
+    ]);
+
     const occupationCounts = publicResidents.reduce((counts, row) => {
       const occupation = row.pekerjaan || 'Tidak diisi';
       counts[occupation] = (counts[occupation] || 0) + 1;
@@ -86,6 +93,9 @@ export default async function handler(req, res) {
         return { label, transaksi: rows.length, masuk, keluar, saldo: masuk - keluar };
       }),
       keuangan: ledgers.map(({ id, sumber, id_rw, id_rt, tanggal, tipe, kategori, jumlah }) => ({ id, sumber, id_rw, id_rt, tanggal, tipe, kategori, jumlah })),
+      lingkungan: lingkungan.filter(inScope).map(({ kategori, lokasi, kondisi, tgl_laporan }) => ({ kategori, lokasi, kondisi, tgl_laporan })),
+      infrastruktur: infrastruktur.filter(inScope).map(({ jenis, lokasi, kondisi, tahun_bangun }) => ({ jenis, lokasi, kondisi, tahun_bangun })),
+      aset: aset.filter(inScope).map(({ nama_aset, kategori, jumlah, kondisi, lokasi_simpan }) => ({ nama_aset, kategori, jumlah, kondisi, lokasi_simpan })),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
