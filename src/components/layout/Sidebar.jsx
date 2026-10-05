@@ -30,8 +30,8 @@ const MENU_BY_ROLE = {
 
 const KEUANGAN_MENU = [
   { jenis: 'global', label: 'Kas Global' },
-  { jenis: 'sampah', label: 'Iuran Sampah' },
-  { jenis: 'keamanan', label: 'Iuran Keamanan' },
+  { jenis: 'sampah', label: 'Dana Kebersihan' },
+  { jenis: 'keamanan', label: 'Dana Keamanan' },
   { jenis: 'dana-sosial', label: 'Dana Sosial' },
   { jenis: 'dana-kematian', label: 'Dana Kematian' },
   { jenis: 'kompensasi', label: 'Dana Kompensasi' },

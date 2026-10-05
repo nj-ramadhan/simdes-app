@@ -38,6 +38,30 @@ export async function addRow(tableName, rowData) {
   return rows[0];
 }
 
+export async function addRows(batch) {
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    const createdRows = [];
+    for (const { tableName, rowData } of batch) {
+      const keys = Object.keys(rowData);
+      const placeholders = keys.map((_, index) => `$${index + 1}`).join(', ');
+      const { rows } = await client.query(
+        `INSERT INTO ${toTableName(tableName)} (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`,
+        Object.values(rowData)
+      );
+      createdRows.push(rows[0]);
+    }
+    await client.query('COMMIT');
+    return createdRows;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function updateRowById(tableName, idField, idValue, newData) {
   const keys = Object.keys(newData);
   if (keys.length === 0) throw new Error('Tidak ada data untuk diupdate');

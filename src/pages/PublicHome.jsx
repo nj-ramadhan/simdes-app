@@ -12,6 +12,11 @@ export default function PublicHome() {
   const [kegiatan, setKegiatan] = useState([]);
   const [selectedKegiatan, setSelectedKegiatan] = useState(null);
   const [activePhoto, setActivePhoto] = useState(0);
+  const [showAduanForm, setShowAduanForm] = useState(false);
+  const [aduanSaving, setAduanSaving] = useState(false);
+  const [aduanSuccess, setAduanSuccess] = useState('');
+  const [aduanError, setAduanError] = useState('');
+  const [aduanForm, setAduanForm] = useState({ nama: '', no_hp: '', kategori: '', id_rw: '', id_rt: '', lokasi: '', deskripsi: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -61,15 +66,43 @@ export default function PublicHome() {
     setActivePhoto((current) => (current + step + total) % total);
   }
 
+  async function submitAduan(event) {
+    event.preventDefault();
+    setAduanSaving(true);
+    setAduanError('');
+    setAduanSuccess('');
+    try {
+      const payload = {
+        ...aduanForm,
+        id_rw: aduanForm.id_rw ? Number(aduanForm.id_rw) : null,
+        id_rt: aduanForm.id_rt ? Number(aduanForm.id_rt) : null,
+      };
+      await publicClient.post('/public/aduan', payload);
+      setAduanSuccess('Aduan berhasil dikirim. Terima kasih atas laporan Anda.');
+      setAduanForm({ nama: '', no_hp: '', kategori: '', id_rw: '', id_rt: '', lokasi: '', deskripsi: '' });
+    } catch (err) {
+      setAduanError(err.response?.data?.error || 'Aduan belum dapat dikirim. Silakan coba kembali.');
+    } finally {
+      setAduanSaving(false);
+    }
+  }
+
   return <main className="public-home">
-    <header className="public-nav"><div className="public-brand"><span className="public-logo"><img src={simdesIcon} alt="SIMDES" /></span><div><strong>SIMDES</strong><small>Sistem Informasi Masyarakat Desa</small></div></div><Link className="public-login-button" to="/login">Masuk Pengelola</Link></header>
-    <section className="public-hero"><div><span className="section-kicker">Portal Transparansi Desa</span><h1>Informasi desa, terbuka untuk semua warga.</h1><p>Lihat ringkasan kependudukan dan keuangan desa berdasarkan RW atau RT tanpa harus masuk ke sistem pengelola.</p></div><div className="public-hero-mark">SIM<br />DES</div></section>
+    <header className="public-nav"><div className="public-brand"><span className="public-logo"><img src={simdesIcon} alt="SIMDES" /></span><div><strong>SIMDES</strong><small>Sistem Informasi Masyarakat Desa</small></div></div><div className="public-nav-actions"><button type="button" className="public-aduan-button" onClick={() => { setShowAduanForm(true); setAduanSuccess(''); setAduanError(''); }}>Buat Aduan</button><Link className="public-login-button" to="/login">Masuk Pengelola</Link></div></header>
+    <section className="public-hero"><div><span className="section-kicker">Portal Transparansi Desa</span><h1>Informasi desa, terbuka untuk semua warga.</h1><p>Lihat ringkasan kependudukan dan keuangan desa berdasarkan RW atau RT tanpa harus masuk ke sistem pengelola.</p></div><div className="public-logo"><img src={simdesIcon} alt="SIMDES" /></div></section>
     <section className="public-content">
       <form className="public-filter" onSubmit={submit}><div><span className="panel-kicker">Cakupan Data</span><h2>Filter transparansi</h2></div><label>RW<input type="number" min="1" placeholder="Semua RW" value={filter.rw} onChange={(e) => setFilter({ ...filter, rw: e.target.value })} /></label><label>RT<input type="number" min="1" placeholder="Semua RT" value={filter.rt} onChange={(e) => setFilter({ ...filter, rt: e.target.value })} /></label><label>Kategori<select value={filter.kategori} onChange={(e) => setFilter({ ...filter, kategori: e.target.value })}><option value="">Semua kas</option><option value="global">Kas Global</option><option value="sampah">Iuran Sampah</option><option value="keamanan">Iuran Keamanan</option><option value="dana-sosial">Dana Sosial</option><option value="dana-kematian">Dana Kematian</option><option value="kompensasi">Dana Kompensasi</option></select></label><button className="primary-button" type="submit">Terapkan</button><button className="public-reset" type="button" onClick={() => { setFilter({ rw: '', rt: '', kategori: '' }); setTimeout(load, 0); }}>Reset</button></form>
       {error && <p className="finance-error">{error}</p>}
       {loading ? <div className="finance-empty">Memuat transparansi desa...</div> : data?.statistik && <>
         <section className="public-stats"><PublicStat label="Total Warga" value={data.statistik.total_warga} /><PublicStat label="Anak" value={data.statistik.anak} /><PublicStat label="Jompo" value={data.statistik.jompo} /><PublicStat label="Usia Produktif" value={data.statistik.usia_produktif} /><PublicStat label="Laki-laki" value={data.statistik.laki_laki} /><PublicStat label="Perempuan" value={data.statistik.perempuan} /><PublicStat label="Saldo Kas" value={money(data.statistik.saldo)} /><PublicStat label="Transaksi" value={data.statistik.total_transaksi} /></section>
-        <section className="public-columns"><article className="public-panel"><div className="panel-header"><div><span className="panel-kicker">Kependudukan Umum</span><h2 className="panel-title">Ringkasan Klasifikasi</h2></div><span className="badge badge-info">Angka agregat</span></div><div className="public-breakdown"><Breakdown title="Pekerjaan" items={data.pekerjaan} /><Breakdown title="Kelompok usia" items={data.klasifikasi_usia} /></div></article><article className="public-panel"><div className="panel-header"><div><span className="panel-kicker">Kas Gabungan</span><h2 className="panel-title">Transparansi Keuangan</h2></div><span className="badge badge-success">{data.statistik.total_transaksi} transaksi</span></div><ul className="public-money-list"><li><span>Total masuk</span><strong>{money(data.statistik.total_masuk)}</strong></li><li><span>Total keluar</span><strong>{money(data.statistik.total_keluar)}</strong></li><li><span>Saldo</span><strong>{money(data.statistik.saldo)}</strong></li></ul><div className="public-breakdown">{data.keuangan_kategori.map((row) => <Breakdown key={row.label} title={row.label} items={[{ label: 'Saldo', jumlah: row.saldo }, { label: 'Transaksi', jumlah: row.transaksi }]} moneyValue={row.label !== 'global'} />)}</div></article></section>
+        <section className="public-columns">
+          <article className="public-panel"><div className="panel-header"><div><span className="panel-kicker">Kependudukan Umum</span><h2 className="panel-title">Ringkasan Klasifikasi</h2></div><span className="badge badge-info">Angka agregat</span></div><div className="public-breakdown"><Breakdown title="Pekerjaan" items={data.pekerjaan} /><Breakdown title="Kelompok usia" items={data.klasifikasi_usia} /></div></article>
+          <article className="public-panel">
+            <div className="panel-header"><div><span className="panel-kicker">Kas Gabungan</span><h2 className="panel-title">Transparansi Keuangan</h2></div><span className="badge badge-success">{data.statistik.total_transaksi} transaksi</span></div>
+            <ul className="public-money-list"><li><span>Total masuk</span><strong>{money(data.statistik.total_masuk)}</strong></li><li><span>Total keluar</span><strong>{money(data.statistik.total_keluar)}</strong></li><li><span>Saldo</span><strong>{money(data.statistik.saldo)}</strong></li></ul>
+            <FinanceBreakdownColumns items={data.keuangan_kategori} />
+          </article>
+        </section>
         <section className="public-resource-grid">
           <ResourceSummary title="Informasi Lingkungan" items={data.lingkungan} primaryKey="kategori" fields={[{ label: 'Lokasi', key: 'lokasi' }, { label: 'Kondisi', key: 'kondisi' }, { label: 'Tanggal laporan', key: 'tgl_laporan', format: formatDate }]} />
           <ResourceSummary title="Informasi Infrastruktur" items={data.infrastruktur} primaryKey="jenis" fields={[{ label: 'Lokasi', key: 'lokasi' }, { label: 'Kondisi', key: 'kondisi' }, { label: 'Tahun dibangun', key: 'tahun_bangun' }]} />
@@ -79,11 +112,22 @@ export default function PublicHome() {
       </>}
     </section>
     {selectedKegiatan && <div className="gallery-modal-overlay" role="dialog" aria-modal="true" aria-label={`Galeri ${selectedKegiatan.judul}`} onClick={closeGallery}><div className="gallery-modal" onClick={(event) => event.stopPropagation()}><button type="button" className="gallery-close" onClick={closeGallery} aria-label="Tutup galeri">X</button><div className="gallery-modal-header"><span className="panel-kicker">Dokumentasi kegiatan</span><h2>{selectedKegiatan.judul}</h2><p>{formatDate(selectedKegiatan.tanggal)}{selectedKegiatan.lokasi ? ` · ${selectedKegiatan.lokasi}` : ''}</p></div>{selectedKegiatan.dokumentasi?.length ? <><div className="gallery-stage"><img src={selectedKegiatan.dokumentasi[activePhoto]} alt={`${selectedKegiatan.judul} dokumentasi ${activePhoto + 1}`} />{selectedKegiatan.dokumentasi.length > 1 && <><button type="button" className="gallery-arrow gallery-prev" onClick={() => movePhoto(-1)} aria-label="Foto sebelumnya">‹</button><button type="button" className="gallery-arrow gallery-next" onClick={() => movePhoto(1)} aria-label="Foto berikutnya">›</button></>}</div><div className="gallery-thumbnails">{selectedKegiatan.dokumentasi.map((photo, index) => <button type="button" className={`gallery-thumbnail ${index === activePhoto ? 'is-active' : ''}`} key={`${selectedKegiatan.id}-thumb-${index}`} onClick={() => setActivePhoto(index)}><img src={photo} alt={`Pilih foto ${index + 1}`} /></button>)}</div><p className="gallery-counter">{activePhoto + 1} / {selectedKegiatan.dokumentasi.length}</p></> : <div className="gallery-no-photo">Laporan ini tidak memiliki foto dokumentasi.</div>}<p className="gallery-description">{selectedKegiatan.deskripsi}</p></div></div>}
+    {showAduanForm && <div className="aduan-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="aduan-title" onClick={() => setShowAduanForm(false)}><section className="aduan-modal" onClick={(event) => event.stopPropagation()}><header className="aduan-modal-header"><div><span className="panel-kicker">Layanan Masyarakat</span><h2 id="aduan-title">Sampaikan Aduan</h2></div><button type="button" className="gallery-close" onClick={() => setShowAduanForm(false)} aria-label="Tutup form aduan">X</button></header>{aduanSuccess && <p className="aduan-success" role="status">{aduanSuccess}</p>}{aduanError && <p className="finance-error" role="alert">{aduanError}</p>}<form className="aduan-form" onSubmit={submitAduan}><label>Nama pelapor<input required maxLength="120" value={aduanForm.nama} onChange={(event) => setAduanForm({ ...aduanForm, nama: event.target.value })} /></label><label>Nomor telepon<input type="tel" maxLength="30" value={aduanForm.no_hp} onChange={(event) => setAduanForm({ ...aduanForm, no_hp: event.target.value })} /></label><label>Kategori<select required value={aduanForm.kategori} onChange={(event) => setAduanForm({ ...aduanForm, kategori: event.target.value })}><option value="">Pilih kategori</option><option>Kebersihan</option><option>Infrastruktur</option><option>Keamanan</option><option>Pelayanan</option><option>Lainnya</option></select></label><label>RW<input type="number" min="1" value={aduanForm.id_rw} onChange={(event) => setAduanForm({ ...aduanForm, id_rw: event.target.value })} /></label><label>RT<input type="number" min="1" value={aduanForm.id_rt} onChange={(event) => setAduanForm({ ...aduanForm, id_rt: event.target.value })} /></label><label className="aduan-form-wide">Lokasi kejadian<input required maxLength="200" value={aduanForm.lokasi} onChange={(event) => setAduanForm({ ...aduanForm, lokasi: event.target.value })} /></label><label className="aduan-form-wide">Uraian aduan<textarea required maxLength="3000" rows="4" value={aduanForm.deskripsi} onChange={(event) => setAduanForm({ ...aduanForm, deskripsi: event.target.value })} /></label><button type="submit" className="primary-button" disabled={aduanSaving}>{aduanSaving ? 'Mengirim...' : 'Kirim Aduan'}</button></form></section></div>}
   </main>;
 }
 
 function PublicStat({ label, value }) { return <article className="public-stat"><span>{label}</span><strong>{value}</strong></article>; }
 function Breakdown({ title, items, moneyValue = false }) { return <div className="public-breakdown-group"><h3>{title}</h3>{items.map((item) => <div className="public-breakdown-row" key={item.label}><span>{item.label}</span><strong>{moneyValue && item.label === 'Saldo' ? money(item.jumlah) : Number(item.jumlah || 0).toLocaleString('id-ID')}</strong></div>)}</div>; }
+function FinanceBreakdownColumns({ items }) {
+  const columns = [
+    [['sampah', 'Dana Kebersihan'], ['keamanan', 'Dana Keamanan']],
+    [['dana-sosial', 'Dana Sosial'], ['dana-kematian', 'Dana Kematian'], ['kompensasi', 'Dana Kompensasi']],
+  ];
+  return <div className="public-finance-columns">{columns.map((column, index) => <div className="public-finance-column" key={index}>{column.map(([key, title]) => {
+    const row = items.find((item) => item.label === key);
+    return row && <Breakdown key={key} title={title} items={[{ label: 'Saldo', jumlah: row.saldo }, { label: 'Transaksi', jumlah: row.transaksi }]} moneyValue />;
+  })}</div>)}</div>;
+}
 function ResourceSummary({ title, items, primaryKey, fields }) {
   return <article className="public-panel public-resource-panel">
     <div className="panel-header"><h2 className="panel-title">{title}</h2><span className="badge badge-info">{items.length} data</span></div>

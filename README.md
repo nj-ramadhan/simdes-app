@@ -54,6 +54,12 @@ psql "$POSTGRES_URL" -f scripts/migrate-numeric-wilayah.sql
 psql "$POSTGRES_URL" -f scripts/migrate-simdes-wilayah.sql
 ```
 
+Untuk database yang dibuat sebelum pencatatan iuran per warga, tambahkan kolom identitas warga pada tabel keuangan:
+
+```bash
+psql "$POSTGRES_URL" -f scripts/migrate-aduan-iuran.sql
+```
+
 Buat akun awal bila diperlukan:
 
 ```bash
