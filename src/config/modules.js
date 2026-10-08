@@ -41,6 +41,8 @@ export const MODULES = {
       { key: 'lokasi', label: 'Lokasi' },
       { key: 'kondisi', label: 'Kondisi' },
       { key: 'tgl_laporan', label: 'Tgl Laporan' },
+      { key: 'nama_pelapor', label: 'Nama Pelapor' },
+      { key: 'no_hp_pelapor', label: 'Telepon Pelapor' },
     ],
     formFields: [
       { key: 'id_rw', label: 'Nomor RW', type: 'number', required: true },
@@ -60,6 +62,8 @@ export const MODULES = {
       { key: 'lokasi', label: 'Lokasi' },
       { key: 'kondisi', label: 'Kondisi' },
       { key: 'tahun_bangun', label: 'Tahun Bangun' },
+      { key: 'nama_pelapor', label: 'Nama Pelapor' },
+      { key: 'no_hp_pelapor', label: 'Telepon Pelapor' },
     ],
     formFields: [
       { key: 'id_rw', label: 'Nomor RW', type: 'number', required: true },
@@ -79,6 +83,8 @@ export const MODULES = {
       { key: 'kategori', label: 'Kategori' },
       { key: 'jumlah', label: 'Jumlah' },
       { key: 'kondisi', label: 'Kondisi' },
+      { key: 'nama_pelapor', label: 'Nama Pelapor' },
+      { key: 'no_hp_pelapor', label: 'Telepon Pelapor' },
     ],
     formFields: [
       { key: 'id_rw', label: 'Nomor RW', type: 'number', required: true },

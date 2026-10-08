@@ -99,7 +99,10 @@ CREATE TABLE IF NOT EXISTS lingkungan (
   kategori TEXT,
   lokasi TEXT,
   kondisi TEXT,
-  tgl_laporan DATE
+  tgl_laporan DATE,
+  aduan_id TEXT,
+  nama_pelapor TEXT,
+  no_hp_pelapor TEXT
 );
 
 CREATE TABLE IF NOT EXISTS infrastruktur (
@@ -109,7 +112,10 @@ CREATE TABLE IF NOT EXISTS infrastruktur (
   jenis TEXT,
   lokasi TEXT,
   kondisi TEXT,
-  tahun_bangun INT
+  tahun_bangun INT,
+  aduan_id TEXT,
+  nama_pelapor TEXT,
+  no_hp_pelapor TEXT
 );
 
 CREATE TABLE IF NOT EXISTS aset (
@@ -121,7 +127,10 @@ CREATE TABLE IF NOT EXISTS aset (
   jumlah INT,
   kondisi TEXT,
   lokasi_simpan TEXT,
-  nilai_perolehan NUMERIC
+  nilai_perolehan NUMERIC,
+  aduan_id TEXT,
+  nama_pelapor TEXT,
+  no_hp_pelapor TEXT
 );
 
 -- ==== Laporan Kegiatan dan Dokumentasi ====

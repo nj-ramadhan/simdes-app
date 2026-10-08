@@ -120,6 +120,9 @@ npm run preview  # preview hasil build
 - `GET /api/keuangan/:jenis/summary`
 - `GET|POST /api/kegiatan`
 - `GET /api/public/kegiatan`
+- `POST /api/public/aduan` — menyimpan aduan dan membuat catatan pada tabel Lingkungan, Infrastruktur, atau Aset sesuai kategori.
+
+Untuk database yang sudah ada, jalankan `scripts/migrate-public-aduan-targets.sql` agar tabel `aduan` tersedia dan tabel kategori memiliki kolom identitas pelapor. Uraian aduan kategori disimpan pada kolom `kondisi`; migrasi memindahkan uraian lama ke kolom itu sebelum menghapus kolom `deskripsi_aduan`. Migrasi ini belum dijalankan otomatis.
 
 Jenis keuangan: `global`, `kebersihan`, `keamanan`, `sosial`, `kematian`, `kompensasi`. Endpoint lama `sampah`, `dana-sosial`, dan `dana-kematian` tetap didukung sebagai alias API. Untuk menyelaraskan label transaksi lama (`Iuran Sampah`/`Iuran Keamanan`) pada database yang sudah berisi data, jalankan `scripts/migrate-finance-category-names.sql` sekali. Kolom `kategori` tetap berupa teks; migrasi ini hanya memperbarui label lama.
 
