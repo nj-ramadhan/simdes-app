@@ -1,13 +1,21 @@
 import { getRows, addRow, addRows, updateRowById, deleteRowById } from '../../_lib/sheets.js';
 import { verifyToken, requireRole, assertScope } from '../../_lib/auth.js';
 
+const LEGACY_TYPE_ALIASES = { sampah: 'kebersihan', 'dana-sosial': 'sosial', 'dana-kematian': 'kematian' };
 const SHEET_MAP = {
   global: 'Keuangan_Global',
-  sampah: 'Keuangan_Sampah',
+  kebersihan: 'Keuangan_Sampah',
   keamanan: 'Keuangan_Keamanan',
-  'dana-sosial': 'Keuangan_DanaSosial',
-  'dana-kematian': 'Keuangan_DanaKematian',
+  sosial: 'Keuangan_DanaSosial',
+  kematian: 'Keuangan_DanaKematian',
   kompensasi: 'Keuangan_Kompensasi',
+};
+const CATEGORY_MAP = {
+  kebersihan: 'Dana Kebersihan',
+  keamanan: 'Dana Keamanan',
+  sosial: 'Dana Sosial',
+  kematian: 'Dana Kematian',
+  kompensasi: 'Dana Kompensasi',
 };
 const LEDGER_TYPES = Object.keys(SHEET_MAP);
 
@@ -30,7 +38,9 @@ async function getScopedRows(jenis, user) {
 export default async function handler(req, res) {
   try {
     const user = verifyToken(req);
-    const { jenis, action } = req.query;
+    const { action } = req.query;
+    const requestedJenis = req.query.jenis;
+    const jenis = LEGACY_TYPE_ALIASES[requestedJenis] || requestedJenis;
     const sheetName = SHEET_MAP[jenis];
     if (!sheetName) return res.status(400).json({ error: 'Jenis laporan tidak valid' });
 
@@ -53,21 +63,25 @@ export default async function handler(req, res) {
       assertScope(user, resident.id_rt, resident.id_rw);
 
       const feeTypes = {
-        sampah: ['Keuangan_Sampah', 'Iuran Sampah'],
-        keamanan: ['Keuangan_Keamanan', 'Iuran Keamanan'],
-        'dana-sosial': ['Keuangan_DanaSosial', 'Dana Sosial'],
-        'dana-kematian': ['Keuangan_DanaKematian', 'Dana Kematian'],
-        kompensasi: ['Keuangan_Kompensasi', 'Dana Kompensasi'],
+        kebersihan: ['Keuangan_Sampah', CATEGORY_MAP.kebersihan],
+        keamanan: ['Keuangan_Keamanan', CATEGORY_MAP.keamanan],
+        sosial: ['Keuangan_DanaSosial', CATEGORY_MAP.sosial],
+        kematian: ['Keuangan_DanaKematian', CATEGORY_MAP.kematian],
+        kompensasi: ['Keuangan_Kompensasi', CATEGORY_MAP.kompensasi],
       };
       const fees = { ...(body.iuran || {}) };
+      fees.kebersihan ??= fees.sampah;
+      fees.sosial ??= fees['dana-sosial'];
+      fees.kematian ??= fees['dana-kematian'];
       const otherAmount = Number(fees.dana_lain || 0);
       delete fees.dana_lain;
       if (!Number.isFinite(otherAmount) || otherAmount < 0) {
         return res.status(400).json({ error: 'Nilai Dana Lain tidak valid' });
       }
       if (otherAmount > 0) {
-        const otherType = body.dana_lain_jenis;
-        if (!['dana-sosial', 'dana-kematian', 'kompensasi'].includes(otherType)) {
+        const requestedOtherType = body.dana_lain_jenis;
+        const otherType = LEGACY_TYPE_ALIASES[requestedOtherType] || requestedOtherType;
+        if (!['sosial', 'kematian', 'kompensasi'].includes(otherType)) {
           return res.status(400).json({ error: 'Pilih kategori Dana Lain yang valid' });
         }
         fees[otherType] = Number(fees[otherType] || 0) + otherAmount;
@@ -124,6 +138,7 @@ export default async function handler(req, res) {
         dicatat_oleh: user.id,
         created_at: new Date().toISOString(),
         ...req.body,
+        kategori: CATEGORY_MAP[jenis] || req.body.kategori,
         id_rw: req.body.id_rw === '' ? null : req.body.id_rw,
         id_rt: req.body.id_rt === '' || req.body.id_rt === 'ALL' ? null : req.body.id_rt,
       });
@@ -148,7 +163,7 @@ export default async function handler(req, res) {
         id_rt: body.id_rt === '' || body.id_rt === 'ALL' ? null : (body.id_rt ?? existing.id_rt),
         tanggal: body.tanggal,
         tipe: body.tipe,
-        kategori: body.kategori,
+        kategori: CATEGORY_MAP[jenis],
         jumlah: Number(body.jumlah),
         keterangan: body.keterangan || null,
       });

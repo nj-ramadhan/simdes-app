@@ -5,12 +5,13 @@ dotenv.config({ path: '.env.local', override: true });
 
 const LEDGERS = [
   ['global', 'Keuangan_Global'],
-  ['sampah', 'Keuangan_Sampah'],
+  ['kebersihan', 'Keuangan_Sampah'],
   ['keamanan', 'Keuangan_Keamanan'],
-  ['dana-sosial', 'Keuangan_DanaSosial'],
-  ['dana-kematian', 'Keuangan_DanaKematian'],
+  ['sosial', 'Keuangan_DanaSosial'],
+  ['kematian', 'Keuangan_DanaKematian'],
   ['kompensasi', 'Keuangan_Kompensasi'],
 ];
+const LEGACY_TYPE_ALIASES = { sampah: 'kebersihan', 'dana-sosial': 'sosial', 'dana-kematian': 'kematian' };
 
 function ageFrom(date) {
   if (!date) return null;
@@ -28,7 +29,8 @@ export default async function handler(req, res) {
   try {
     const rw = req.query?.rw ? Number(req.query.rw) : null;
     const rt = req.query?.rt ? Number(req.query.rt) : null;
-    const kategori = req.query?.kategori ? String(req.query.kategori) : null;
+    const requestedKategori = req.query?.kategori ? String(req.query.kategori) : null;
+    const kategori = LEGACY_TYPE_ALIASES[requestedKategori] || requestedKategori;
     if (rw !== null && !Number.isInteger(rw)) return res.status(400).json({ error: 'Filter RW harus berupa angka' });
     if (rt !== null && !Number.isInteger(rt)) return res.status(400).json({ error: 'Filter RT harus berupa angka' });
 

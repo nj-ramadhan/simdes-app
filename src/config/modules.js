@@ -10,8 +10,8 @@ export const MODULES = {
     columns: [
       { key: 'id_rw', label: 'RW' },
       { key: 'id_rt', label: 'RT' },
-      { key: 'nik', label: 'NIK' },
-      { key: 'nama', label: 'Nama Lengkap' },
+      { key: 'nik', label: 'NIK', sortable: true },
+      { key: 'nama', label: 'Nama Lengkap', sortable: true },
       { key: 'jenis_kelamin', label: 'L/P' },
       { key: 'no_kk', label: 'No KK' },
       { key: 'status_kk', label: 'Status Dalam KK' },

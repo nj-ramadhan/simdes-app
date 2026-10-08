@@ -12,6 +12,7 @@ export default function DataModulePage({ config }) {
   const { title, apiPath, idField, columns, formFields } = config;
   const { user } = useAuth();
   const [data, setData] = useState([]);
+  const [sort, setSort] = useState({ key: '', direction: 'asc' });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -19,6 +20,16 @@ export default function DataModulePage({ config }) {
   const [error, setError] = useState('');
 
   const canWrite = user.role === 'rt_admin' || user.role === 'rw_admin';
+  const sortedData = sort.key
+    ? [...data].sort((left, right) => {
+      const result = String(left[sort.key] ?? '').localeCompare(
+        String(right[sort.key] ?? ''),
+        'id',
+        { numeric: true, sensitivity: 'base' },
+      );
+      return sort.direction === 'asc' ? result : -result;
+    })
+    : data;
 
   async function load() {
     setLoading(true);
@@ -102,7 +113,18 @@ export default function DataModulePage({ config }) {
           <p>Memuat data...</p>
         </div>
       ) : (
-        <DataTable columns={columns} data={data} canWrite={canWrite} onEdit={openEdit} onDelete={handleDelete} />
+        <DataTable
+          columns={columns}
+          data={sortedData}
+          canWrite={canWrite}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          sort={sort}
+          onSort={(key) => setSort((current) => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+          }))}
+        />
       )}
 
       {showModal && (

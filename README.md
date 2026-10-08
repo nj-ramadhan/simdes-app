@@ -121,7 +121,7 @@ npm run preview  # preview hasil build
 - `GET|POST /api/kegiatan`
 - `GET /api/public/kegiatan`
 
-Jenis keuangan: `global`, `sampah`, `keamanan`, `dana-sosial`, `dana-kematian`, `kompensasi`.
+Jenis keuangan: `global`, `kebersihan`, `keamanan`, `sosial`, `kematian`, `kompensasi`. Endpoint lama `sampah`, `dana-sosial`, dan `dana-kematian` tetap didukung sebagai alias API. Untuk menyelaraskan label transaksi lama (`Iuran Sampah`/`Iuran Keamanan`) pada database yang sudah berisi data, jalankan `scripts/migrate-finance-category-names.sql` sekali. Kolom `kategori` tetap berupa teks; migrasi ini hanya memperbarui label lama.
 
 Laporan kegiatan dapat dibuat oleh `rt_admin` atau `rw_admin` melalui menu Laporan Kegiatan. Foto dikompres di browser dan disimpan sebagai JSONB pada tabel `kegiatan` (maksimal 6 foto per laporan). Warga dapat membaca laporan dan dokumentasinya melalui dashboard warga, sedangkan endpoint publik tersedia melalui `/api/public/kegiatan`.
 
@@ -135,7 +135,7 @@ Saat membuat data sensus, isi `Nomor RW` dan `Nomor RT`. Kedua nilai disimpan se
 
 Data Lingkungan, Infrastruktur, Aset, dan seluruh transaksi keuangan juga menyimpan `id_rw` dan `id_rt`. `Nomor RT` boleh dikosongkan untuk transaksi tingkat RW, tetapi `Nomor RW` tetap wajib diisi.
 
-Laporan `Kas Global` adalah agregasi seluruh tabel ledger: global, sampah, keamanan, dana sosial, dana kematian, dan kompensasi. Setiap transaksi tetap disimpan di tabel kategorinya agar dapat ditelusuri berdasarkan kategori, RW, dan RT.
+Laporan `Kas Global` adalah agregasi seluruh tabel ledger: global, kebersihan, keamanan, sosial, kematian, dan kompensasi. Setiap transaksi tetap disimpan di tabel kategorinya agar dapat ditelusuri berdasarkan kategori, RW, dan RT. Nama tabel fisik (`keuangan_sampah`, `keuangan_danasosial`, dan lainnya) dipertahankan agar tidak memutus data yang sudah ada.
 
 ## Migrasi ke Vercel
 

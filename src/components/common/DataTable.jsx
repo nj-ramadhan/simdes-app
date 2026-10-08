@@ -6,19 +6,27 @@ function displayValue(column, value) {
   return value;
 }
 
-export default function DataTable({ columns, data, onEdit, onDelete, canWrite }) {
+export default function DataTable({ columns, data, onEdit, onDelete, canWrite, sort, onSort }) {
   return (
     <div className="table-shell">
       <table className="data-table">
         <thead>
           <tr>
-            {columns.map(col => <th key={col.key}>{col.label}</th>)}
+            {columns.map(col => (
+              <th key={col.key} aria-sort={col.sortable && sort?.key === col.key ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined}>
+                {col.sortable ? (
+                  <button type="button" className="data-table-sort" onClick={() => onSort(col.key)}>
+                    {col.label}{sort?.key === col.key ? (sort.direction === 'asc' ? ' ↑' : ' ↓') : ''}
+                  </button>
+                ) : col.label}
+              </th>
+            ))}
             {canWrite && <th className="text-center">Aksi</th>}
           </tr>
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={row.id || i}>
+            <tr key={row.id ?? row.id_warga ?? i}>
               {columns.map(col => <td key={col.key}>{displayValue(col, row[col.key])}</td>)}
               {canWrite && (
                 <td className="action-cell">

@@ -4,9 +4,17 @@ import client from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateInput } from '../../utils/formatters';
 
+const LEGACY_TYPE_ALIASES = { sampah: 'kebersihan', 'dana-sosial': 'sosial', 'dana-kematian': 'kematian' };
 const LABEL = {
-  global: 'Kas Global', sampah: 'Dana Kebersihan', keamanan: 'Dana Keamanan',
-  'dana-sosial': 'Dana Sosial', 'dana-kematian': 'Dana Kematian', kompensasi: 'Dana Kompensasi',
+  global: 'Kas Global', kebersihan: 'Dana Kebersihan', keamanan: 'Dana Keamanan',
+  sosial: 'Dana Sosial', kematian: 'Dana Kematian', kompensasi: 'Dana Kompensasi',
+};
+const FIXED_CATEGORIES = {
+  kebersihan: 'Dana Kebersihan',
+  keamanan: 'Dana Keamanan',
+  sosial: 'Dana Sosial',
+  kematian: 'Dana Kematian',
+  kompensasi: 'Dana Kompensasi',
 };
 const EMPTY_FORM = { tanggal: '', tipe: 'masuk', kategori: '', jumlah: '', keterangan: '' };
 const currency = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
@@ -41,9 +49,9 @@ function getFinanceDateKey(value) {
 }
 
 const OTHER_FEE_TYPES = [
-  { key: 'dana-sosial', label: 'Dana Sosial' },
-  { key: 'dana-kematian', label: 'Dana Kematian' },
-  { key: 'kompensasi', label: 'Kompensasi' },
+  { key: 'sosial', label: 'Dana Sosial' },
+  { key: 'kematian', label: 'Dana Kematian' },
+  { key: 'kompensasi', label: 'Dana Kompensasi' },
 ];
 
 function createPaymentForm() {
@@ -52,14 +60,15 @@ function createPaymentForm() {
     tanggal: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
     tipe: 'masuk',
     id_warga: '',
-    dana_lain_jenis: 'dana-sosial',
-    iuran: { sampah: '', keamanan: '', dana_lain: '' },
+    dana_lain_jenis: 'sosial',
+    iuran: { kebersihan: '', keamanan: '', dana_lain: '' },
     keterangan: '',
   };
 }
 
 export default function LaporanKeuangan() {
-  const { jenis } = useParams();
+  const { jenis: requestedJenis } = useParams();
+  const jenis = LEGACY_TYPE_ALIASES[requestedJenis] || requestedJenis;
   const { user } = useAuth();
   const [transaksi, setTransaksi] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -68,14 +77,17 @@ export default function LaporanKeuangan() {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [residents, setResidents] = useState([]);
   const [paymentForm, setPaymentForm] = useState(createPaymentForm);
-  const [form, setForm] = useState({ ...EMPTY_FORM, id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
+  const [form, setForm] = useState({ ...EMPTY_FORM, kategori: FIXED_CATEGORIES[jenis] || '', id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const canWrite = user.role === 'rt_admin' || user.role === 'rw_admin';
+  const sortedResidents = [...residents].sort((left, right) => (
+    String(left.nama || '').localeCompare(String(right.nama || ''), 'id', { sensitivity: 'base' })
+  ));
   const reportRows = jenis === 'global' ? combineFeeTransactions(transaksi) : transaksi;
   const monthGroups = groupTransactionsByMonth(reportRows);
-  const paymentTotal = Number(paymentForm.iuran.sampah || 0)
+  const paymentTotal = Number(paymentForm.iuran.kebersihan || 0)
     + Number(paymentForm.iuran.keamanan || 0)
     + Number(paymentForm.iuran.dana_lain || 0);
 
@@ -110,7 +122,7 @@ export default function LaporanKeuangan() {
 
   function resetForm() {
     setEditingTransaction(null);
-    setForm({ ...EMPTY_FORM, id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
+    setForm({ ...EMPTY_FORM, kategori: FIXED_CATEGORIES[jenis] || '', id_rw: user.id_rw ?? '', id_rt: user.id_rt ?? '' });
   }
 
   function openCreate() {
@@ -123,7 +135,7 @@ export default function LaporanKeuangan() {
     setForm({
       tanggal: formatDateInput(transaction.tanggal),
       tipe: transaction.tipe || 'masuk',
-      kategori: transaction.kategori || '',
+      kategori: FIXED_CATEGORIES[jenis] || transaction.kategori || '',
       jumlah: transaction.jumlah ?? '',
       keterangan: transaction.keterangan || '',
       id_rw: transaction.id_rw ?? '',
@@ -146,7 +158,7 @@ export default function LaporanKeuangan() {
     setSaving(true);
     setError('');
     try {
-      const payload = { ...form, jumlah: Number(form.jumlah), id_rw: form.id_rw === '' ? null : Number(form.id_rw), id_rt: form.id_rt === '' ? null : Number(form.id_rt) };
+      const payload = { ...form, kategori: FIXED_CATEGORIES[jenis] || form.kategori, jumlah: Number(form.jumlah), id_rw: form.id_rw === '' ? null : Number(form.id_rw), id_rt: form.id_rt === '' ? null : Number(form.id_rt) };
       if (editingTransaction) await client.put(`/keuangan/${jenis}?id=${encodeURIComponent(editingTransaction.id)}`, payload);
       else await client.post(`/keuangan/${jenis}`, payload);
       resetForm();
@@ -183,16 +195,18 @@ export default function LaporanKeuangan() {
       </header>
       {error && <p className="finance-error">{error}</p>}
       {showPaymentForm && jenis === 'global' && <form onSubmit={handlePaymentSubmit} className="finance-form">
-        <div className="panel-header"><div><span className="panel-kicker">Pencatatan Pembayaran</span><h2 className="panel-title">Iuran warga</h2></div></div>
+        <div className="panel-header"><div><span className="panel-kicker">Pencatatan Pembayaran</span><h2 className="panel-title">Iuran Warga</h2></div></div>
         <div className="finance-form-grid">
           <label>Tanggal<input required type="date" value={paymentForm.tanggal} onChange={(event) => setPaymentForm({ ...paymentForm, tanggal: event.target.value })} /></label>
           <label>Tipe<select value={paymentForm.tipe} onChange={(event) => setPaymentForm({ ...paymentForm, tipe: event.target.value })}><option value="masuk">Masuk</option><option value="keluar">Keluar</option></select></label>
-          <label className="finance-form-wide">Nama warga<select required value={paymentForm.id_warga} onChange={(event) => setPaymentForm({ ...paymentForm, id_warga: event.target.value })}><option value="">Pilih warga terdaftar</option>{residents.map((resident) => <option key={resident.id_warga} value={resident.id_warga}>{resident.nama}</option>)}</select></label>
+          <label className="finance-form-wide">Nama warga<select required value={paymentForm.id_warga} onChange={(event) => setPaymentForm({ ...paymentForm, id_warga: event.target.value })}><option value="">Pilih warga terdaftar</option>{sortedResidents.map((resident) => <option key={resident.id_warga} value={resident.id_warga}>{resident.nama}</option>)}</select></label>
         </div>
-        <div className="finance-table-wrap finance-entry-table-wrap"><table className="finance-table finance-entry-table"><thead><tr><th>Jenis Iuran</th><th>Kategori Dana Lain</th><th>Nominal</th></tr></thead><tbody>
-          <tr><td>Kebersihan</td><td>-</td><td><input aria-label="Iuran Kebersihan" min="0" step="1" type="number" value={paymentForm.iuran.sampah} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, sampah: event.target.value } })} /></td></tr>
-          <tr><td>Keamanan</td><td>-</td><td><input aria-label="Iuran Keamanan" min="0" step="1" type="number" value={paymentForm.iuran.keamanan} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, keamanan: event.target.value } })} /></td></tr>
-          <tr><td>Dana Lain</td><td><select aria-label="Kategori Dana Lain" value={paymentForm.dana_lain_jenis} onChange={(event) => setPaymentForm({ ...paymentForm, dana_lain_jenis: event.target.value })}>{OTHER_FEE_TYPES.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}</select></td><td><input aria-label="Dana Lain" min="0" step="1" type="number" value={paymentForm.iuran.dana_lain} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, dana_lain: event.target.value } })} /></td></tr>
+        <div className="finance-table-wrap finance-entry-table-wrap"><table className="finance-table finance-entry-table"><thead><tr><th>Jenis Iuran</th><th>Nominal</th></tr></thead><tbody>
+          <tr><td>Kebersihan</td><td><input aria-label="Dana Kebersihan" min="0" step="1" type="number" value={paymentForm.iuran.kebersihan} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, kebersihan: event.target.value } })} /></td></tr>
+          <tr><td>Keamanan</td><td><input aria-label="Dana Keamanan" min="0" step="1" type="number" value={paymentForm.iuran.keamanan} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, keamanan: event.target.value } })} /></td></tr>
+          <tr><td>Sosial</td><td><input aria-label="Dana Sosial" min="0" step="1" type="number" value={paymentForm.iuran.sosial} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, sosial: event.target.value } })} /></td></tr>
+          <tr><td>Kematian</td><td><input aria-label="Dana Kematian" min="0" step="1" type="number" value={paymentForm.iuran.kematian} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, kematian: event.target.value } })} /></td></tr>
+          <tr><td>Kompensasi</td><td><input aria-label="Dana Kompensasi" min="0" step="1" type="number" value={paymentForm.iuran.kompensasi} onChange={(event) => setPaymentForm({ ...paymentForm, iuran: { ...paymentForm.iuran, kompensasi: event.target.value } })} /></td></tr>
           <tr><th colSpan="2">Total</th><th className="amount">{currency(paymentTotal)}</th></tr>
         </tbody></table></div>
         <label className="finance-form-wide">Keterangan<input value={paymentForm.keterangan} onChange={(event) => setPaymentForm({ ...paymentForm, keterangan: event.target.value })} /></label>
@@ -202,7 +216,6 @@ export default function LaporanKeuangan() {
       {showForm && jenis !== 'global' && <form onSubmit={handleSubmit} className="finance-form"><div className="finance-form-grid">
         <label>Tanggal<input required type="date" value={form.tanggal} onChange={(e) => setForm({ ...form, tanggal: e.target.value })} /></label>
         <label>Tipe<select value={form.tipe} onChange={(e) => setForm({ ...form, tipe: e.target.value })}><option value="masuk">Masuk</option><option value="keluar">Keluar</option></select></label>
-        <label>Kategori<input required value={form.kategori} onChange={(e) => setForm({ ...form, kategori: e.target.value })} /></label>
         <label>Jumlah<input required min="0" type="number" value={form.jumlah} onChange={(e) => setForm({ ...form, jumlah: e.target.value })} /></label>
         <label className="finance-form-wide">Keterangan<input value={form.keterangan} onChange={(e) => setForm({ ...form, keterangan: e.target.value })} /></label>
       </div><button type="submit" className="submit-button" disabled={saving}>{saving ? 'Menyimpan...' : editingTransaction ? 'Simpan Perubahan' : 'Simpan Transaksi'}</button></form>}
@@ -255,7 +268,7 @@ function combineFeeTransactions(items) {
       total: 0,
       keterangan: item.keterangan || '-',
     };
-    const fee = item.sumber === 'sampah' ? 'kebersihan' : item.sumber === 'keamanan' ? 'keamanan' : 'dana_lain';
+    const fee = item.sumber === 'kebersihan' ? 'kebersihan' : item.sumber === 'keamanan' ? 'keamanan' : 'dana_lain';
     const amount = Number(item.jumlah || 0);
     payment[fee] += amount;
     payment.total += amount;

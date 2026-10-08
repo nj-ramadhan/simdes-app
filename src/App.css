@@ -13,7 +13,13 @@
 .public-brand small { display: block; margin-top: 3px; color: #5f8478; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .public-login-button { padding: 12px 18px; border-radius: 12px; color: #173d38; background: white; border: 1px solid #cbded8; font-size: 15px; font-weight: 900; text-decoration: none; }
 .public-nav-actions { display: flex; align-items: center; gap: 10px; }
-.public-aduan-button { padding: 12px 18px; color: white; border: 1px solid #176a4c; border-radius: 10px; background: #176a4c; font: inherit; font-weight: 800; cursor: pointer; }
+.public-aduan-button { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; color: white; border: 1px solid #c93636; border-radius: 10px; background: #d94343; font: inherit; font-weight: 800; cursor: pointer; }
+.public-aduan-button:hover { border-color: #a92929; background: #bd3030; }
+.public-aduan-button:focus-visible { outline: 3px solid #f5a4a4; outline-offset: 2px; }
+.public-aduan-icon { width: 18px; height: 18px; flex: 0 0 auto; }
+.data-table-sort { padding: 0; color: inherit; border: 0; background: none; font: inherit; font-weight: inherit; cursor: pointer; }
+.data-table-sort:hover { text-decoration: underline; }
+.data-table-sort:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .public-hero, .public-content { max-width: 1240px; margin: 0 auto; }
 .public-hero { min-height: 260px; margin-top: 10px; padding: 38px 44px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; border-radius: 28px; color: white; background: linear-gradient(135deg, #163b3b, #245b47); box-shadow: 0 18px 50px rgba(20, 105, 93, .15); }
 .public-hero h1 { max-width: 700px; margin: 10px 0 12px; font-size: clamp(34px, 5vw, 58px); line-height: .98; font-weight: 900; letter-spacing: -.04em; }
